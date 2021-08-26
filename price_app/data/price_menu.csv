@@ -1,7 +1,7 @@
-item,unifr,academics,commercials
-spl_prep_classic,6,8,30
-spl_prep_derivatization,10,12,50
-spl_prep_vial_conditionning,3,5,15
+Item,unifr,academics,private
+Vial Conditionning,3,5,15
+Sample Prep GC/LC,6,8,30
+Sample Prep GC Derivatization,10,12,50
 da_gcms_short,5,7,25
 da_gcms_long,7,9,35
 da_gcfid_short,5,7,25
