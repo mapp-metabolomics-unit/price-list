@@ -52,4 +52,4 @@ select(samples, prix_CHF)
 # output
 
 
-write_csv(merged_df_sel, 'data/price_bioinf.csv')
+write_tsv(merged_df_sel, 'data/price_bioinf.tsv')
