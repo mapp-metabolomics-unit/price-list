@@ -17,13 +17,13 @@ ui <- fluidPage(
       radioButtons("typeInput", "User",
                   choices = c("unifr", "academics", "commercials"),
                   selected = "unifr"),
-      selectInput("itemInput", "Sample Prep",
+      selectInput("spl_itemInput", "Sample Prep",
               c('None', sort(unique(price_menu$item[grep('spl_prep', price_menu$item)]))) ,
               selected = "None"),
-      selectInput("itemInput", "Data Acquisition",
+      selectInput("da_itemInput", "Data Acquisition",
               c('None', sort(unique(price_menu$item[grep('da', price_menu$item)]))) ,
               selected = "None"),
-      selectInput("itemInput", "Processing",
+      selectInput("proc_itemInput", "Processing",
               c('None', sort(unique(price_menu$item[grep('processing', price_menu$item)]))) ,
               selected = "None"),
     #   selectInput("itemInput", "Item",
@@ -32,8 +32,13 @@ ui <- fluidPage(
       uiOutput("countryOutput")
     ),
     mainPanel(
-    #   plotOutput("coolplot"),
-    #   br(), br(),
+      textOutput("coolplot"),
+      tags$head(tags$style("#coolplot{color: black;
+                                 font-size: 200px;
+                                 font-style: bold;
+                                 }")
+      ),
+      br(), br(),
       tableOutput("results")
     )
   )
@@ -59,17 +64,16 @@ server <- function(input, output) {
 #       )
 #   })
       price_menu %>%
-      select(item, input$typeInput[1])  %>% 
-      filter(item == input$itemInput[1])
+      select(item, input$typeInput)  %>% 
+      filter(item == input$spl_itemInput | item == input$da_itemInput | item == input$proc_itemInput )
   })
   
-#   output$coolplot <- renderPlot({
-#     if (is.null(filtered())) {
-#       return()
-#     }
-#     ggplot(filtered(), aes(Alcohol_Content)) +
-#       geom_histogram()
-#   })
+  output$coolplot <- renderText({
+    if (is.null(filtered())) {
+      return()
+    }
+    paste(sum(filtered()[,2] * input$sampleInput[1]), ' CHF')
+  })
 
   output$results <- renderTable({
     filtered()

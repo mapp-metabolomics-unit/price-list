@@ -11,3 +11,5 @@ da_gcmshr_long,7,9,35
 da_lcms_short,5,7,25
 da_lcms_long,10,12,50
 basic_processing,3,5,15
+bioinfo_stats_processing,0,0,0
+met_annotation_processing,0,0,0
