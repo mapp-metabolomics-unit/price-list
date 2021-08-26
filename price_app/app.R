@@ -3,10 +3,10 @@ library(shiny)
 library(ggplot2)
 library(dplyr)
 
-price_menu <- read.csv("/Users/pma/Dropbox/git_repos/mapp-metabolomics-unit/price-list/data/price_menu.csv", stringsAsFactors = FALSE)
-price_bioinfo <- read.csv("/Users/pma/Dropbox/git_repos/mapp-metabolomics-unit/price-list/data/price_bioinf.csv", stringsAsFactors = FALSE)
+price_menu <- read.csv("./data/price_menu.csv", stringsAsFactors = FALSE)
+price_bioinfo <- read.csv("./data/price_bioinf.csv", stringsAsFactors = FALSE)
 
-print(str(bcl))
+print(str(price_menu))
 
 
 ui <- fluidPage(
@@ -26,6 +26,8 @@ ui <- fluidPage(
       selectInput("proc_itemInput", "Processing",
               c('None', sort(unique(price_menu$item[grep('processing', price_menu$item)]))) ,
               selected = "None"),
+      checkboxInput("bioInput_biostats", "Biostats", FALSE),
+      checkboxInput("bioInput_metannot", "Metabolite Annotation", FALSE),
     #   selectInput("itemInput", "Item",
     #           sort(unique(price_menu$item)),
     #           selected = "None"),
@@ -55,24 +57,27 @@ server <- function(input, output) {
     if (is.null(input$typeInput)) {
       return(NULL)
     }    
-    
-#     price_menu %>%
-#       filter(Price >= input$priceInput[1],
-#              Price <= input$priceInput[2],
-#              Type == input$typeInput,
-#              Country == input$countryInput
-#       )
-#   })
       price_menu %>%
       select(item, input$typeInput)  %>% 
       filter(item == input$spl_itemInput | item == input$da_itemInput | item == input$proc_itemInput )
   })
-  
+
+    filtered_2 <- reactive({
+    if (is.null(input$typeInput)) {
+      return(NULL)
+    }    
+      price_bioinfo %>%
+      filter(samples == input$sampleInput[1])  %>% 
+      select('prix_CHF')
+
+  })
+
+
   output$coolplot <- renderText({
     if (is.null(filtered())) {
       return()
     }
-    paste(sum(filtered()[,2] * input$sampleInput[1]), ' CHF')
+    paste((sum(filtered()[,2] * input$sampleInput[1]) + (filtered_2() * (as.numeric(input$bioInput_biostats) + as.numeric(input$bioInput_metannot)))), ' CHF')
   })
 
   output$results <- renderTable({
