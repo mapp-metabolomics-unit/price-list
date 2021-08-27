@@ -48,7 +48,9 @@ ui <- fluidPage(
                                  font-style: bold;
                                  }")),
       br(), br(),
-      tableOutput("results")
+      tableOutput("results"),
+       # Button
+      downloadButton("downloadData", "Download")
     )
   )
 )
@@ -86,14 +88,31 @@ server <- function(input, output) {
     paste((sum(filtered()[, 2] * input$sampleInput[1]) + (filtered_2() * (as.numeric(input$bioInput_biostats) + as.numeric(input$bioInput_metannot)))), " CHF")
   })
 
+
   output$results <- renderTable({
     filtered() %>%
+      #See https://stackoverflow.com/a/53842689 usefull to rename eventough columns dont exist
       rename_with(recode,
         unifr = "UniFr",
         academics = "Academics",
         private = "Private"
       )
   })
+    # Reactive value for selected dataset ----
+  datasetOutput <- reactive({
+    output$results
+  })
+
+    # Downloadable csv of selected dataset ----
+  output$downloadData <- downloadHandler(
+    filename = function() {
+      paste(input$dataset, ".csv", sep = "")
+    },
+    content = function(file) {
+      write.csv(filtered(), file, row.names = FALSE)
+    }
+  )
+
 }
 
 shinyApp(ui = ui, server = server)
