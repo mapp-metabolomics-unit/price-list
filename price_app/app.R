@@ -3,10 +3,13 @@ library(ggplot2)
 library(dplyr)
 library(janitor)
 
+# when running from R visual studio terminal
+# price_menu <- read.csv("price_app/data/price_menu.csv", stringsAsFactors = FALSE)
+# price_bioinfo <- read.csv("price_app/data/price_bioinf.csv", stringsAsFactors = FALSE)
 
-
-price_menu <- read.csv("price_app/data/price_menu.csv", stringsAsFactors = FALSE)
-price_bioinfo <- read.csv("price_app/data/price_bioinf.csv", stringsAsFactors = FALSE)
+# when deploying to shinyapps.io
+price_menu <- read.csv("data/price_menu.csv", stringsAsFactors = FALSE)
+price_bioinfo <- read.csv("data/price_bioinf.csv", stringsAsFactors = FALSE)
 
 
 print(str(price_menu))
