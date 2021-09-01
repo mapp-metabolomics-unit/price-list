@@ -1,6 +1,8 @@
 library(shiny)
 library(ggplot2)
 library(dplyr)
+library(janitor)
+
 
 
 price_menu <- read.csv("price_app/data/price_menu.csv", stringsAsFactors = FALSE)
@@ -66,15 +68,18 @@ ui <- fluidPage(
         selected = "None"
       ),
       selectInput("proc_itemInput", "Processing",
-        choices = c("None", my_named_list[grep('processing', dico$sections)]),
+        choices = c("None", my_named_list[grep('processing', dico$sections)], "Advanced Processing"),
         selected = "None"
       ),
+      conditionalPanel(
+        condition = "input.proc_itemInput == 'Advanced Processing'",
       checkboxInput("bioInput_biostats", "Biostats", FALSE),
-      checkboxInput("bioInput_metannot", "Metabolite Annotation", FALSE),
+      checkboxInput("bioInput_metannot", "Metabolite Annotation", FALSE)
+      )
       #   selectInput("itemInput", "item",
       #           sort(unique(price_menu$item)),
       #           selected = "None"),
-      uiOutput("countryOutput")
+      #uiOutput("countryOutput")
     ),
     mainPanel(
       textOutput("coolplot"),
@@ -114,6 +119,29 @@ server <- function(input, output) {
       select("prix_CHF")
   })
 
+    filtered_biostats <- reactive({
+    if (input$bioInput_biostats == FALSE) {
+      return(NULL)
+    }
+    price_bioinfo %>%
+      filter(samples == input$sampleInput[1]) %>%
+      mutate(item = 'Biostats')  %>% 
+      select(item, "prix_CHF")  %>% 
+      rename("total_price" = "prix_CHF")
+  })
+
+    filtered_metannot <- reactive({
+    if (input$bioInput_metannot == FALSE) {
+      return(NULL)
+    }
+    price_bioinfo %>%
+      filter(samples == input$sampleInput[1]) %>%
+      mutate(item = 'Metabolite Annotation')  %>% 
+      select(item, "prix_CHF")  %>% 
+      rename("total_price" = "prix_CHF")
+  })
+
+
 
   output$coolplot <- renderText({
     if (is.null(filtered())) {
@@ -128,11 +156,17 @@ server <- function(input, output) {
     left_join(y=dico, by=c('item' ='original_names')) %>% 
     mutate(item = new_names) %>%
     select(-new_names, -correspondances, -sections) %>% 
-      rename_with(recode,
+    mutate('total_price' = .[[2]] * input$sampleInput[1])  %>% 
+    # # add_row(item = 'bioingo', unifr = 0)  %>% 
+    bind_rows(filtered_biostats())  %>% 
+    bind_rows(filtered_metannot())  %>% 
+    adorn_totals("row") %>% 
+    rename_with(recode,
         item = "Item", 
-        unifr = "UniFr",
-        academics = "Academics",
-        private = "Private",
+        unifr = "Price Per Unit (UniFr)",
+        academics = "Price Per Unit (Academics)",
+        private = "Price Per Unit (Private)",
+        total_price = "Total Price",
       )
   })
     # Reactive value for selected dataset ----
