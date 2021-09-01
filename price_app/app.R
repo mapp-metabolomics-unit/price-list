@@ -4,12 +4,12 @@ library(dplyr)
 library(janitor)
 
 # when running from R visual studio terminal
-# price_menu <- read.csv("price_app/data/price_menu.csv", stringsAsFactors = FALSE)
-# price_bioinfo <- read.csv("price_app/data/price_bioinf.csv", stringsAsFactors = FALSE)
+price_menu <- read.csv("price_app/data/price_menu.csv", stringsAsFactors = FALSE)
+price_bioinfo <- read.csv("price_app/data/price_bioinf.csv", stringsAsFactors = FALSE)
 
 # when deploying to shinyapps.io
-price_menu <- read.csv("data/price_menu.csv", stringsAsFactors = FALSE)
-price_bioinfo <- read.csv("data/price_bioinf.csv", stringsAsFactors = FALSE)
+# price_menu <- read.csv("data/price_menu.csv", stringsAsFactors = FALSE)
+# price_bioinfo <- read.csv("data/price_bioinf.csv", stringsAsFactors = FALSE)
 
 
 print(str(price_menu))
@@ -51,7 +51,10 @@ grep('user_type', dico$sections)
 
 
 ui <- fluidPage(
-  titlePanel("Metabolomics MAPP Prices"),
+  # titlePanel("Metabolomics MAPP Prices - 2021"),
+  h1(id="big-heading", "Metabolomics MAPP Prices - 2021"),
+  tags$style(HTML("#big-heading{color: black; font-size: 50px;
+                                 font-style: bold;}")),
   sidebarLayout(
     sidebarPanel(
       sliderInput("sampleInput", "Samples", 0, 500, 5, pre = ""),
