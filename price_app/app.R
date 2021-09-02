@@ -5,11 +5,13 @@ library(janitor)
 
 # when running from R visual studio terminal
 price_menu <- read.csv("price_app/data/price_menu.csv", stringsAsFactors = FALSE)
-price_bioinfo <- read.csv("price_app/data/price_bioinf.csv", stringsAsFactors = FALSE)
+price_bioinfo <- read.csv("price_app/data/price_bioinf_allactors.csv", stringsAsFactors = FALSE)
+price_bioinfo_basics <- read.csv("price_app/data/price_bioinf_basics.csv", stringsAsFactors = FALSE)
 
 # when deploying to shinyapps.io
 # price_menu <- read.csv("data/price_menu.csv", stringsAsFactors = FALSE)
-# price_bioinfo <- read.csv("data/price_bioinf.csv", stringsAsFactors = FALSE)
+# price_bioinfo <- read.csv("data/price_bioinf_allactors.csv", stringsAsFactors = FALSE)
+# price_bioinfo_basics <- read.csv("data/price_app/data/price_bioinf_basics.csv", stringsAsFactors = FALSE)
 
 
 print(str(price_menu))
@@ -35,9 +37,9 @@ mutate(new_names = replace(new_names, new_names == "da_gcmshr_short", "GC-QToF S
 mutate(new_names = replace(new_names, new_names == "da_gcmshr_long", "GC-QToF Long Run"))  %>%
 mutate(new_names = replace(new_names, new_names == "da_lcms_short", "LCMS Short Run"))  %>%
 mutate(new_names = replace(new_names, new_names == "da_lcms_long", "LCMS Long Run"))  %>%
-mutate(new_names = replace(new_names, new_names == "basic_processing", "Basic Processing"))  %>% 
+# mutate(new_names = replace(new_names, new_names == "basic_processing", "Basic Processing"))  %>% 
 mutate(correspondances = paste('"', dico$original_names,'"', ' = ', '"',dico$new_names,'"', sep = ''))  %>% 
-mutate(sections = c('item', rep('user_type',3), rep('sample_prep',3), rep('methods', 8), rep('processing', 1) ))
+mutate(sections = c('item', rep('user_type',3), rep('sample_prep',3), rep('methods', 8) ))
 
 
 
@@ -74,18 +76,25 @@ ui <- fluidPage(
         selected = "None"
       ),
       selectInput("proc_itemInput", "Processing",
-        choices = c("None", my_named_list[grep('processing', dico$sections)], "Advanced Processing"),
+        choices = c("None", my_named_list[grep('processing', dico$sections)],"Basic Processing", "Advanced Processing"),
         selected = "None"
+      ),
+      conditionalPanel(
+        condition = "input.proc_itemInput == 'Basic Processing'",
+      checkboxInput("bioInput_basics", "Peak Table", FALSE)
       ),
       conditionalPanel(
         condition = "input.proc_itemInput == 'Advanced Processing'",
       checkboxInput("bioInput_biostats", "Biostats", FALSE),
       checkboxInput("bioInput_metannot", "Metabolite Annotation", FALSE)
-      )
+      ),
       #   selectInput("itemInput", "item",
       #           sort(unique(price_menu$item)),
       #           selected = "None"),
       #uiOutput("countryOutput")
+  #     h2(id="big-heading", "Metabolomics MAPP Prices - 2021"),
+  # tags$style(HTML("#big-heading{color: black; font-size: 50px;
+  #                                font-style: bold;}"))
     ),
     mainPanel(
       textOutput("coolplot"),
@@ -122,7 +131,18 @@ server <- function(input, output) {
     }
     price_bioinfo %>%
       filter(samples == input$sampleInput[1]) %>%
-      select("prix_CHF")
+      select("price_chf_unifr")
+  })
+
+  filtered_basic <- reactive({
+    if (input$bioInput_basics  == FALSE) {
+      return(NULL)
+    }
+    price_bioinfo_basics %>%
+      filter(samples == input$sampleInput[1]) %>%
+      mutate(item = 'Basic Processing')  %>% 
+      select(item, "price_chf_unifr")  %>% 
+      rename("total_price" = "price_chf_unifr")
   })
 
     filtered_biostats <- reactive({
@@ -132,28 +152,44 @@ server <- function(input, output) {
     price_bioinfo %>%
       filter(samples == input$sampleInput[1]) %>%
       mutate(item = 'Biostats')  %>% 
-      select(item, "prix_CHF")  %>% 
-      rename("total_price" = "prix_CHF")
+      select(item, "price_chf_unifr")  %>% 
+      rename("total_price" = "price_chf_unifr")
   })
 
     filtered_metannot <- reactive({
-    if (input$bioInput_metannot == FALSE) {
-      return(NULL)
-    }
-    price_bioinfo %>%
+    # if (input$bioInput_metannot == FALSE) {
+    #   return(NULL)
+    # }
+    req(input$typeInput)
+    if (input$typeInput == 'unifr' & input$bioInput_metannot == TRUE ) {
+      price_bioinfo %>%
       filter(samples == input$sampleInput[1]) %>%
       mutate(item = 'Metabolite Annotation')  %>% 
-      select(item, "prix_CHF")  %>% 
-      rename("total_price" = "prix_CHF")
+      select(item, "price_chf_academics")  %>% 
+      rename("total_price" = "price_chf_academics")
+    }
+    else if(input$typeInput == 'private' & input$bioInput_metannot == TRUE ) {
+      price_bioinfo %>%
+      filter(samples == input$sampleInput[1]) %>%
+      mutate(item = 'Metabolite Annotation')  %>% 
+      select(item, "price_chf_private")  %>% 
+      rename("total_price" = "price_chf_private")
+    }
+    # price_bioinfo %>%
+    #   filter(samples == input$sampleInput[1]) %>%
+    #   mutate(item = 'Metabolite Annotation')  %>% 
+    #   select(item, "price_chf_academics")  %>% 
+    #   rename("total_price" = "price_chf_academics")
   })
-
+observe(print(input$typeInput))
+observe(print(input$bioInput_metannot))
 
 
   output$coolplot <- renderText({
     if (is.null(filtered())) {
       return()
     }
-    paste((sum(filtered()[, 2] * input$sampleInput[1]) + (filtered_2() * (as.numeric(input$bioInput_biostats) + as.numeric(input$bioInput_metannot)))), " CHF")
+    paste((sum(filtered()[, 2] * input$sampleInput[1]) + (filtered_basic()[, 2] * as.numeric(input$bioInput_basics)) + (filtered_2() * (as.numeric(input$bioInput_biostats) + as.numeric(input$bioInput_metannot)))), " CHF")
   })
 
 
@@ -166,6 +202,7 @@ server <- function(input, output) {
     # # add_row(item = 'bioingo', unifr = 0)  %>% 
     bind_rows(filtered_biostats())  %>% 
     bind_rows(filtered_metannot())  %>% 
+    bind_rows(filtered_basic())  %>% 
     adorn_totals("row") %>% 
     rename_with(recode,
         item = "Item", 

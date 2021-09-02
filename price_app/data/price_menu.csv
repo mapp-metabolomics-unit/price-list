@@ -1,7 +1,7 @@
 item,unifr,academics,private
 vial_conditionning,3,5,15
-spl_prep_ms,6,8,30
-spl_prep_gcms_derivatization,10,12,50
+spl_prep_ms,9,11,30
+spl_prep_gcms_derivatization,12,15,50
 da_gcms_short,5,7,25
 da_gcms_long,7,9,35
 da_gcfid_short,5,7,25
@@ -10,4 +10,3 @@ da_gcmshr_short,5,7,25
 da_gcmshr_long,7,9,35
 da_lcms_short,5,7,25
 da_lcms_long,10,12,50
-basic_processing,3,5,15
