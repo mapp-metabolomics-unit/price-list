@@ -14,12 +14,12 @@ library(tidyverse)
 
 
 
-samples <- c(0,1, 2, 5,10,20,50,75,100,250,500, 1000)
-tarifs <- c(0,40,100,150,200,300,450,600, 700,1000, 1250, 1500)
+# samples <- c(0,1, 2, 5,10,20,50,75,100,250,500, 1000)
+# tarifs <- c(0,40,100,150,200,300,450,600, 700,1000, 1250, 1500)
 
 # this is the range for the basic proc
-# samples <- c(1,100,500)
-# tarifs <- c(3,150,350)
+samples <- c(1,100,500)
+tarifs <- c(3,150,350)
 
 mat <- data.frame(samples,tarifs)
 
@@ -41,11 +41,11 @@ input_df = data.frame(samples, tarifs)
 
 merged_df = merge(input_df, mat_pred, by = 'samples', all.y = TRUE)
 
-merged_df$pred_rounded = round(merged_df$pred, digits = -1)
+merged_df$pred_rounded = round(merged_df$pred, digits = 0)
 
-# fig <- plot_ly(data = merged_df, x = ~samples, y = ~tarifs, type = 'scatter') %>% 
-#         add_trace(x =~samples,  y = ~pred_rounded , type = 'scatter', mode = 'lines+markers')
-# fig
+fig <- plot_ly(data = merged_df, x = ~samples, y = ~tarifs, type = 'scatter') %>% 
+        add_trace(x =~samples,  y = ~pred_rounded , type = 'scatter', mode = 'lines+markers')
+fig
 
 
 # selection 
@@ -58,5 +58,5 @@ dplyr::select(samples, price_chf_unifr, price_chf_academics, price_chf_private)
 
 
 # write_tsv(merged_df_sel, 'data/price_bioinf.tsv')
-write_tsv(merged_df_sel, 'data/price_bioinf_allactors.tsv')
-write_csv(merged_df_sel, 'data/price_bioinf_allactors.csv')
+write_tsv(merged_df_sel, 'data/price_bioinf_basics_allactors.tsv')
+write_csv(merged_df_sel, 'data/price_bioinf_basics_allactors.csv')
