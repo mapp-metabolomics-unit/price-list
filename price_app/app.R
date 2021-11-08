@@ -136,15 +136,28 @@ server <- function(input, output) {
       select("price_chf_unifr")
   })
 
+
   filtered_basic <- reactive({
-    if (input$bioInput_basics == FALSE) {
-      return(NULL)
+    req(input$typeInput)
+    if (input$typeInput == "unifr" & input$bioInput_basics == TRUE) {
+      price_bioinfo_basics %>%
+        filter(samples == input$sampleInput[1]) %>%
+        mutate(item = "Basic Processing") %>%
+        select(item, "price_chf_unifr") %>%
+        rename("total_price" = "price_chf_unifr")
+    } else if (input$typeInput == "academics" & input$bioInput_basics == TRUE) {
+      price_bioinfo_basics %>%
+        filter(samples == input$sampleInput[1]) %>%
+        mutate(item = "Basic Processing") %>%
+        select(item, "price_chf_academics") %>%
+        rename("total_price" = "price_chf_academics")
+    } else if (input$typeInput == "private" & input$bioInput_basics == TRUE) {
+      price_bioinfo_basics %>%
+        filter(samples == input$sampleInput[1]) %>%
+        mutate(item = "Basic Processing") %>%
+        select(item, "price_chf_private") %>%
+        rename("total_price" = "price_chf_private")
     }
-    price_bioinfo_basics %>%
-      filter(samples == input$sampleInput[1]) %>%
-      mutate(item = "Basic Processing") %>%
-      select(item, "price_chf_unifr") %>%
-      rename("total_price" = "price_chf_unifr")
   })
 
   filtered_biostats <- reactive({
