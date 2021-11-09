@@ -5,7 +5,7 @@ account: oolonek
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 4541191
-bundleId: 4989444
+bundleId: 5228343
 url: https://oolonek.shinyapps.io/price_app/
-when: 1630510623.27916
-lastSyncTime: 1630510623.27918
+when: 1636396665.00771
+lastSyncTime: 1636396665.00772
