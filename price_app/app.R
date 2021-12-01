@@ -13,6 +13,15 @@ price_bioinfo_basics <- read.csv("price_app/data/price_bioinf_basics_allactors.c
 # price_bioinfo <- read.csv("data/price_bioinf_allactors.csv", stringsAsFactors = FALSE)
 # price_bioinfo_basics <- read.csv("data/price_bioinf_basics_allactors.csv", stringsAsFactors = FALSE)
 
+# input$typeInput <- 'unifr'
+# input$spl_itemInput <- 'vial_conditionning'
+# input$da_itemInput <- 'da_lcms_short'
+
+# price_menu %>%
+#       select(item, unifr) %>%
+#       filter(item == 'vial_conditionning' | item == 'da_lcms_short')  %>% 
+#       mutate(unifr = unifr * 2)
+
 
 print(str(price_menu))
 
@@ -59,7 +68,6 @@ ui <- fluidPage(
                                  font-style: bold;}")),
   sidebarLayout(
     sidebarPanel(
-      sliderInput("sampleInput", "Samples", 0, 500, 5, pre = ""),
       radioButtons("typeInput", "User",
         choiceNames = as.list(
           dico$new_names[grep("user_type", dico$sections)]
@@ -69,6 +77,7 @@ ui <- fluidPage(
         ),
         selected = "unifr"
       ),
+      sliderInput("sampleInput", "Samples", 0, 500, 5, pre = ""),
       selectInput("spl_itemInput", "Sample Prep",
         choices = c("None", my_named_list[grep("sample_prep", dico$sections)]),
         selected = "None"
@@ -85,16 +94,18 @@ ui <- fluidPage(
       conditionalPanel(
         condition = "input.da_itemInput == 'da_lcms_long' | input.da_itemInput == 'da_lcms_short'",
               checkboxGroupInput(inputId = "polarity", label = "",
-                   choices = c("Positive" = TRUE,
-                               "Negative" = TRUE),
-                   inline = TRUE)
+                   choices = c("Positive" = 'pos',
+                               "Negative" = 'neg'),
+                   inline = TRUE,
+                   selected = 'pos')
       ),
       conditionalPanel(
         condition = "input.da_itemInput == 'da_lcms_long' | input.da_itemInput == 'da_lcms_short'",
               checkboxGroupInput(inputId = "phase", label = "",
-                   choices = c("C18" = TRUE,
-                               "HILIC" = TRUE),
-                   inline = TRUE)
+                   choices = c("C18" = 'c18',
+                               "HILIC" = 'hilic'),
+                   inline = TRUE,
+                   selected = 'c18')
       ),
       selectInput("proc_itemInput", "Processing",
         choices = c("None", my_named_list[grep("processing", dico$sections)], "Basic Processing", "Advanced Processing"),
@@ -137,13 +148,35 @@ server <- function(input, output) {
   #                 selected = "CANADA")
   #   })
 
+  # filtered <- reactive({
+  #   if (is.null(input$typeInput)) {
+  #     return(NULL)
+  #   }
+  #   price_menu %>%
+  #     select(item, input$typeInput) %>%
+  #     filter(item == input$spl_itemInput | item == input$da_itemInput | item == input$proc_itemInput)
+  # })
+
   filtered <- reactive({
     if (is.null(input$typeInput)) {
       return(NULL)
-    }
+    } else if (length(input$polarity) * length(input$phase) == 1 ){
     price_menu %>%
       select(item, input$typeInput) %>%
       filter(item == input$spl_itemInput | item == input$da_itemInput | item == input$proc_itemInput)
+    } else if (length(input$polarity) * length(input$phase) == 2 ){
+    price_menu %>%
+      select(item, input$typeInput) %>%
+      filter(item == input$spl_itemInput | item == input$da_itemInput | item == input$proc_itemInput)  %>% 
+      # see https://stackoverflow.com/a/62864238
+      mutate(!!as.symbol(input$typeInput) := sum(rep(.[[2]],2)))
+    } else if (length(input$polarity) * length(input$phase) == 4 ){
+    price_menu %>%
+      select(item, input$typeInput) %>%
+      filter(item == input$spl_itemInput | item == input$da_itemInput | item == input$proc_itemInput)  %>% 
+      # see https://stackoverflow.com/a/62864238
+      mutate(!!as.symbol(input$typeInput) := sum(rep(.[[2]],4)))
+    }
   })
 
   filtered_2 <- reactive({
@@ -263,7 +296,8 @@ server <- function(input, output) {
   })
 
   observe(print(input$bioInput_metannot))
-  observe(print(input$polarity))
+  observe(print(length(input$polarity)))
+  observe(print(input$typeInput))
 
   # Reactive value for selected dataset ----
   datasetOutput <- reactive({
