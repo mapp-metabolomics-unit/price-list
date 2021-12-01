@@ -148,36 +148,42 @@ server <- function(input, output) {
   #                 selected = "CANADA")
   #   })
 
-  # filtered <- reactive({
-  #   if (is.null(input$typeInput)) {
-  #     return(NULL)
-  #   }
-  #   price_menu %>%
-  #     select(item, input$typeInput) %>%
-  #     filter(item == input$spl_itemInput | item == input$da_itemInput | item == input$proc_itemInput)
-  # })
-
   filtered <- reactive({
     if (is.null(input$typeInput)) {
       return(NULL)
-    } else if (length(input$polarity) * length(input$phase) == 1 ){
-    price_menu %>%
-      select(item, input$typeInput) %>%
-      filter(item == input$spl_itemInput | item == input$da_itemInput | item == input$proc_itemInput)
-    } else if (length(input$polarity) * length(input$phase) == 2 ){
-    price_menu %>%
-      select(item, input$typeInput) %>%
-      filter(item == input$spl_itemInput | item == input$da_itemInput | item == input$proc_itemInput)  %>% 
-      # see https://stackoverflow.com/a/62864238
-      mutate(!!as.symbol(input$typeInput) := sum(rep(.[[2]],2)))
-    } else if (length(input$polarity) * length(input$phase) == 4 ){
-    price_menu %>%
-      select(item, input$typeInput) %>%
-      filter(item == input$spl_itemInput | item == input$da_itemInput | item == input$proc_itemInput)  %>% 
-      # see https://stackoverflow.com/a/62864238
-      mutate(!!as.symbol(input$typeInput) := sum(rep(.[[2]],4)))
     }
+    price_menu %>%
+      select(item, input$typeInput) %>%
+      filter(item == input$spl_itemInput | item == input$da_itemInput | item == input$proc_itemInput)  %>% 
+      mutate('item_number' = case_when(item == input$spl_itemInput ~ as.integer(input$sampleInput[1]),
+                                      #  item == input$da_itemInput & input$da_itemInput != 'da_lcms_short' ~ as.integer(input$sampleInput[1]),
+                                      #  item == input$da_itemInput & input$da_itemInput != 'da_lcms_long' ~ as.integer(input$sampleInput[1]),
+                                       item != 'da_lcms_short' & item != 'da_lcms_long' ~ as.integer(input$sampleInput[1]),
+                                       item == 'da_lcms_short' | item == 'da_lcms_long' ~ as.integer(input$sampleInput[1] * max(c(1, length(input$polarity) * length(input$phase)))),
+                                       item == input$proc_itemInput ~ NA_integer_))
   })
+
+  # filtered <- reactive({
+  #   if (is.null(input$typeInput)) {
+  #     return(NULL)
+  #   } else if (length(input$polarity) * length(input$phase) == 1 ){
+  #   price_menu %>%
+  #     select(item, input$typeInput) %>%
+  #     filter(item == input$spl_itemInput | item == input$da_itemInput | item == input$proc_itemInput)
+  #   } else if (length(input$polarity) * length(input$phase) == 2 ){
+  #   price_menu %>%
+  #     select(item, input$typeInput) %>%
+  #     filter(item == input$spl_itemInput | item == input$da_itemInput | item == input$proc_itemInput)  %>% 
+  #     # see https://stackoverflow.com/a/62864238
+  #     mutate(!!as.symbol(input$typeInput) := .[[2]])
+  #   } else if (length(input$polarity) * length(input$phase) == 4 ){
+  #   price_menu %>%
+  #     select(item, input$typeInput) %>%
+  #     filter(item == input$spl_itemInput | item == input$da_itemInput | item == input$proc_itemInput)  %>% 
+  #     # see https://stackoverflow.com/a/62864238
+  #     mutate(!!as.symbol(input$typeInput) := sum(rep(.[[2]],4)))
+  #   }
+  # })
 
   filtered_2 <- reactive({
     if (is.null(input$typeInput)) {
@@ -268,6 +274,7 @@ server <- function(input, output) {
       mutate(item = new_names) %>%
       select(-new_names, -correspondances, -sections) %>%
       mutate("total_price" = .[[2]] * input$sampleInput[1]) %>%
+      #  * max(c(1, length(input$polarity) * length(input$phase)))
       # # add_row(item = 'bioingo', unifr = 0)  %>%
       bind_rows(filtered_biostats()) %>%
       bind_rows(filtered_metannot()) %>%
