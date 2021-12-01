@@ -277,6 +277,7 @@ server <- function(input, output) {
       bind_rows(filtered_biostats()) %>%
       bind_rows(filtered_metannot()) %>%
       bind_rows(filtered_basic()) %>%
+      # see https://github.com/sfirke/janitor/issues/219#issuecomment-609086000 for the tuning of adorn function
       adorn_totals("row",,,,total_price) %>%
       rename_with(recode,
         item = "Item",
