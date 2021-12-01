@@ -156,8 +156,6 @@ server <- function(input, output) {
       select(item, input$typeInput) %>%
       filter(item == input$spl_itemInput | item == input$da_itemInput | item == input$proc_itemInput)  %>% 
       mutate('item_number' = case_when(item == input$spl_itemInput ~ as.integer(input$sampleInput[1]),
-                                      #  item == input$da_itemInput & input$da_itemInput != 'da_lcms_short' ~ as.integer(input$sampleInput[1]),
-                                      #  item == input$da_itemInput & input$da_itemInput != 'da_lcms_long' ~ as.integer(input$sampleInput[1]),
                                        item != 'da_lcms_short' & item != 'da_lcms_long' ~ as.integer(input$sampleInput[1]),
                                        item == 'da_lcms_short' | item == 'da_lcms_long' ~ as.integer(input$sampleInput[1] * max(c(1, length(input$polarity) * length(input$phase)))),
                                        item == input$proc_itemInput ~ NA_integer_))
@@ -273,18 +271,19 @@ server <- function(input, output) {
       left_join(y = dico, by = c("item" = "original_names")) %>%
       mutate(item = new_names) %>%
       select(-new_names, -correspondances, -sections) %>%
-      mutate("total_price" = .[[2]] * input$sampleInput[1]) %>%
+      mutate("total_price" = .[[2]] * item_number) %>%
       #  * max(c(1, length(input$polarity) * length(input$phase)))
       # # add_row(item = 'bioingo', unifr = 0)  %>%
       bind_rows(filtered_biostats()) %>%
       bind_rows(filtered_metannot()) %>%
       bind_rows(filtered_basic()) %>%
-      adorn_totals("row") %>%
+      adorn_totals("row",,,,total_price) %>%
       rename_with(recode,
         item = "Item",
         unifr = "Price Per Unit (UniFr)",
         academics = "Price Per Unit (Academics)",
         private = "Price Per Unit (Private)",
+        item_number = "Number of Items",
         total_price = "Total Price",
       )
   })
