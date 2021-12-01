@@ -4,14 +4,14 @@ library(dplyr)
 library(janitor)
 
 # when running from R visual studio terminal
-# price_menu <- read.csv("price_app/data/price_menu.csv", stringsAsFactors = FALSE)
-# price_bioinfo <- read.csv("price_app/data/price_bioinf_allactors.csv", stringsAsFactors = FALSE)
-# price_bioinfo_basics <- read.csv("price_app/data/price_bioinf_basics_allactors.csv", stringsAsFactors = FALSE)
+price_menu <- read.csv("price_app/data/price_menu.csv", stringsAsFactors = FALSE)
+price_bioinfo <- read.csv("price_app/data/price_bioinf_allactors.csv", stringsAsFactors = FALSE)
+price_bioinfo_basics <- read.csv("price_app/data/price_bioinf_basics_allactors.csv", stringsAsFactors = FALSE)
 
 # when deploying to shinyapps.io
-price_menu <- read.csv("data/price_menu.csv", stringsAsFactors = FALSE)
-price_bioinfo <- read.csv("data/price_bioinf_allactors.csv", stringsAsFactors = FALSE)
-price_bioinfo_basics <- read.csv("data/price_bioinf_basics_allactors.csv", stringsAsFactors = FALSE)
+# price_menu <- read.csv("data/price_menu.csv", stringsAsFactors = FALSE)
+# price_bioinfo <- read.csv("data/price_bioinf_allactors.csv", stringsAsFactors = FALSE)
+# price_bioinfo_basics <- read.csv("data/price_bioinf_basics_allactors.csv", stringsAsFactors = FALSE)
 
 
 print(str(price_menu))
@@ -77,6 +77,25 @@ ui <- fluidPage(
         choices = c("None", my_named_list[grep("methods", dico$sections)]),
         selected = "None"
       ),
+      # conditionalPanel(
+      #   condition = "input.da_itemInput != 'None'",
+      #   checkboxInput("daInput_pos", "Positive mode", FALSE),
+      #   checkboxInput("daInput_neg", "Negative mode", FALSE)
+      # ),
+      conditionalPanel(
+        condition = "input.da_itemInput == 'da_lcms_long' | input.da_itemInput == 'da_lcms_short'",
+              checkboxGroupInput(inputId = "polarity", label = "",
+                   choices = c("Positive" = TRUE,
+                               "Negative" = TRUE),
+                   inline = TRUE)
+      ),
+      conditionalPanel(
+        condition = "input.da_itemInput == 'da_lcms_long' | input.da_itemInput == 'da_lcms_short'",
+              checkboxGroupInput(inputId = "phase", label = "",
+                   choices = c("C18" = TRUE,
+                               "HILIC" = TRUE),
+                   inline = TRUE)
+      ),
       selectInput("proc_itemInput", "Processing",
         choices = c("None", my_named_list[grep("processing", dico$sections)], "Basic Processing", "Advanced Processing"),
         selected = "None"
@@ -89,7 +108,7 @@ ui <- fluidPage(
         condition = "input.proc_itemInput == 'Advanced Processing'",
         checkboxInput("bioInput_biostats", "Biostats", FALSE),
         checkboxInput("bioInput_metannot", "Metabolite Annotation", FALSE)
-      ),
+      )
       #   selectInput("itemInput", "item",
       #           sort(unique(price_menu$item)),
       #           selected = "None"),
@@ -244,6 +263,7 @@ server <- function(input, output) {
   })
 
   observe(print(input$bioInput_metannot))
+  observe(print(input$polarity))
 
   # Reactive value for selected dataset ----
   datasetOutput <- reactive({
